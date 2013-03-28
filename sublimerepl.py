@@ -8,6 +8,7 @@ import Queue
 import sublime
 import sublime_plugin
 import repls
+import sys
 import os
 import os.path
 import buzhug
@@ -164,13 +165,38 @@ class ReplView(object):
 
         view.settings().set("history_arrows", settings.get("history_arrows", True))
 
-        if self.external_id and settings.get("presistent_history_enabled"):
+        # for hysterical rasins ;)
+        persistent_history_enabled = settings.get("persistent_history_enabled") or settings.get("presistent_history_enabled")
+        if self.external_id and persistent_history_enabled:
             self._history = PersistentHistory(self.external_id)
         else:
             self._history = MemHistory()
         self._history_match = None
 
         self._filter_color_codes = settings.get("filter_ascii_color_codes")
+
+        # optionally move view to a different group
+        # find current position of this replview
+        (group, index) = self._window.get_view_index(view)
+
+        # get the view that was focussed before the repl was opened.
+        # we'll have to focus this one briefly to make sure it's in the
+        # foreground again after moving the replview away
+        oldview = self._window.views_in_group(group)[max(0, index - 1)]
+
+        target = settings.get("open_repl_in_group")
+
+        # either the target group is specified by index
+        if isinstance(target, long):
+            if 0 <= target < self._window.num_groups() and target != group:
+                self._window.set_view_index(view, target, len(self._window.views_in_group(target)))
+                self._window.focus_view(oldview)
+                self._window.focus_view(view)
+        # or, if simply set to true, move it to the next group from the currently active one
+        elif target and group + 1 < self._window.num_groups():
+            self._window.set_view_index(view, group + 1, len(self._window.views_in_group(group + 1)))
+            self._window.focus_view(oldview)
+            self._window.focus_view(view)
 
         # begin refreshing attached view
         self.update_view_loop()
@@ -442,8 +468,11 @@ class ReplManager(object):
             "packages": sublime.packages_path(),
             "installed_packages": sublime.installed_packages_path()
         }
+        res["editor"] = "subl -w"
+        res["win_cmd_encoding"] = "utf8"
         if sublime.platform() == "windows":
             res["win_cmd_encoding"] = locale.getdefaultlocale()[1]
+            res["editor"] = '"%s"' % (sys.executable,)
         av = window.active_view()
         if av is None:
             return res

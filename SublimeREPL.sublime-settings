@@ -1,13 +1,23 @@
 {
 	// default_extend_env are used to augment any environment variables
-	// that should be visible for all subporcess repls launched within
+	// that should be visible for all subprocess repls launched within
 	// SublimeREPL. This is a very good place to add PATH extension
 	// once "PATH": "{PATH}:/home/username/mylocalinstalls/bin" or whatever
 	"default_extend_env": {},
 
+	// Specify whether to move repls to a different Sublime Text group (frame)
+	// immediately on opening. Setting this to true will simply move it to
+	// the 'next' group from the one that was in focus when it was opened
+	// (one down with row layout, one to the right with column and grid
+	// layout). Alternatively, you can set this to the index of the group in
+	// which you want all repls to be opened (index 0 being the top-left group).
+	// Activating this option will NOT automatically change your layout/create
+	// a new group if it isn't open.
+	"open_repl_in_group": false,
+
 	// Persistent history is stored per REPL external_id, it means that all python
 	// REPLS will share history. If you wish you can disable history altogether
-	"presistent_history_enabled": true,
+	"persistent_history_enabled": true,
 
 	// By default SublimeREPL leaves REPL view open once the underlying subprocess
 	// dies or closes connection. This is useful when the process dies for an unexpected
@@ -36,7 +46,7 @@
 		"smart_indent": false,
 		"indent_subsequent_lines": false,
 		"detect_indentation": false,
-		"auto_complete": false,
+		"auto_complete": true,
 		"line_numbers": false,
 		"gutter": false
 	},
@@ -45,5 +55,10 @@
 	// those related to sublime projects that are not available through standard API
 	// WARNING: this will switch your build system back to Automatic each time a REPL
 	// is started so beware!
-	"use_build_system_hack": false
+	"use_build_system_hack": false,
+
+	// IP address used to setup autocomplete server in sublimerepl.
+	// changing this is usefull when you want to exclude one address
+	// from proxychains/tsocks routing
+	"autocomplete_server_ip": "127.0.0.1"
 }

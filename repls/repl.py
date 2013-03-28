@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2011, Wojciech Bederski (wuub.net) 
-# All rights reserved. 
+# Copyright (c) 2011, Wojciech Bederski (wuub.net)
+# All rights reserved.
 # See LICENSE.txt for details.
 
-from uuid import uuid4  
+from uuid import uuid4
 from codecs import getincrementaldecoder, getencoder
 
 
@@ -34,11 +34,18 @@ class Repl(object):
 
     def __init__(self, encoding, external_id=None, cmd_postfix="\n", suppress_echo=False):
         self.id = uuid4().hex
-        self.decoder = getincrementaldecoder(encoding)()
+        self._encoding = encoding
+        self.decoder = getincrementaldecoder(self._encoding)()
         self.encoder = getencoder(encoding)
         self.external_id = external_id
         self.cmd_postfix = cmd_postfix
         self.suppress_echo = suppress_echo
+
+    def autocomplete_available(self):
+        return False
+
+    def autocomplete_completions(self, whole_line, pos_in_line, prefix, whole_prefix, locations):
+        raise NotImplementedError
 
     def close(self):
         if self.is_alive():
@@ -47,13 +54,13 @@ class Repl(object):
     def name(self):
         """Returns name of this repl that should be used as a filename"""
         return NotImplementedError
-    
+
     def is_alive(self):
         """ Returns true if the undelying process is stil working"""
         raise NotImplementedError
-    
+
     def write_bytes(self, bytes):
-        raise NotImplementedError        
+        raise NotImplementedError
 
     def read_bytes(self):
         """Reads at lest one byte of Repl output. Returns None if output died.
@@ -69,6 +76,9 @@ class Repl(object):
         (bytes, how_many) = self.encoder(command)
         return self.write_bytes(bytes)
 
+    def reset_decoder(self):
+        self.decoder = getincrementaldecoder(self._encoding)()
+
     def read(self):
         """Reads at least one decoded char of output"""
         while True:
@@ -78,6 +88,7 @@ class Repl(object):
             try:
                 output = self.decoder.decode(bs)
             except Exception, e:
-                output = "[SublimeRepl: decode error]\n"
+                output = u"■"
+                self.reset_decoder()
             if output:
                 return output
