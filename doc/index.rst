@@ -111,10 +111,45 @@ main menu and palette options for REPL startup, keymaps, and special REPL
 extensions unique to the target language. An integration may contain several
 different REPL modes which are based  on different underlying classes.
 
+Clojure NREPL
+^^^^^^^^^^^^^
 
+If you are reading this, then you are probably looking at emestee's development branch.
+Unless you want to hack on the bleeding edge version of this not-yet-software, go ahead. Otherwise
+you probably want the stable version of SublimeREPL (in which there's no working Clojure integration)
 
-Clojure
-^^^^^^^
+Newest Clojure and Leiningen versions replace the old telnet REPL with a new engine
+called nrepl, which integrates natively with Leiningen projects. This deprecates the old
+SublimeREPL telnet implementation, which is now replaced with the new nrepl client.
+
+This is a work in progress!
+
+Work plan:
+
+* Purge the old implementation, leaving only the shell
+* Lay out the new structure
+* Implement! 
+
+The old implementation supported either the subprocess mode or the telnet mode. 
+
+* In subprocess mode, we launch a Leiningen REPL (with e.g. `lein repl`) and interact with its
+IO. This requires a Leiningen project.
+* In native mode, we assume a nrepl server is already running somewhere, and connect with it via
+an embedded client. 
+
+We implement native mode first. This requires a special derivation of Repl.
+
+Menu config:
+
+* Changing repl ID to repl_clojure_nrepl
+* Changng repl type to nrepl
+* What does soft_quit do 
+* Do we retain cwd?
+
+! When over, remove workspace file from .gitignore
+
+Clojure telnet REPL - deprecated
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The Clojure integration supports Leiningen projects. SublimeREPL uses your
 `project.clj` to set up the REPL.
