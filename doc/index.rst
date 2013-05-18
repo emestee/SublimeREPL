@@ -266,10 +266,11 @@ Structure of SublimeREPL
 
 .. NOTE::
    If this is your first time dealing with Sublime plugins, you may find it a bit too magical. Basically,
-   Sublime automatically scans plugin directories loads configuration files and plugin code without manual
+   Sublime automatically scans plugin directories, loads configuration files and plugin code without manual
    intervention, and reloads them dynamically as soon as they change. The entry points to a plugin's code are its commands, 
    which are Python objects that extend Sublime's standard command class. Sublime calls them when needed. There
-   is no initialization entry point or a "plugin loaded" callback or somesuch. 
+   is no initialization entry point or a "plugin loaded" callback or somesuch. Note that .py files from package
+   subdirectories are NOT reloaded automatically. 
 
 Basics of language integration: configuration and launch commands
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
