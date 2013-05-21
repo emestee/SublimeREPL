@@ -77,9 +77,6 @@ class ClojureNreplRepl(Repl):
             o.append(nrepl_msg['err'])
 
         if ('value' in nrepl_msg):
-            if 'id' in nrepl_msg and nrepl_msg['id'] == 'init':
-                return self.read_bytes()
-                
             o.append(nrepl_msg['value'])
 
         return "\n".join(o)
