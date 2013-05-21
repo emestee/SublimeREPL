@@ -4,15 +4,12 @@
 # All rights reserved. 
 # See LICENSE.txt for details.
 
-#import sublime_plugin
-#import sublimerepl
-
-# from nrepl_client.repl import Repl as NReplClient
-# from nrepl_client.terminal import SublimeTerminal as NReplSublimeTerminal
-
 from repls import Repl
-# 
 from time import sleep
+
+import dev_bensock as bensock
+
+import socket
 
 #class ReplEnterClojureNreplCommand(sublime_plugin.TextCommand):
 #    def run(self, edit):
@@ -27,9 +24,9 @@ class ClojureNreplRepl(Repl):
 
     @property
     def prompt(self):
-        return "%s > " % self._nrepl.session.ns
+        return "%s > " % self._ns
 
-    def __init__(self, encoding, external_id=None, host="localhost", port=4001, suppress_echo=False):
+    def __init__(self, encoding="utf-8", external_id=None, host="localhost", port=4001, suppress_echo=False):
         """Create new ClojureNreplRepl with the following initial values:
         encoding: one of python accepted encoding used to encode commands and decode responses
         external_id: external, persistent name of this repl used to find it later
@@ -38,33 +35,74 @@ class ClojureNreplRepl(Repl):
         cmd_postfix: some REPLS require you to end a command with a postfix to begin execution,
           think ';' or '.', you can force repl to add it automatically"""
 
-        super(ClojureNreplRepl, self).__init__(encoding, external_id, "", suppress_echo)
-        # self._terminal = NReplSublimeTerminal()
-        # self._nrepl = NReplClient((host, int(port)), terminal=self._terminal)
-        self._host = host
-        self._port = port
+        Repl.__init__(self, encoding, external_id, "", suppress_echo)
         self._alive = True
         self._killed = False
+        self._sessions = []
+        self._current_session = None
+        self._socket = None
+        self._bencode_socket = None
+        if host and port:
+            self.connect(host, port)
 
     def name(self):
-        return "Clojure nrepl %s:%s" % (self._host, self._port)
+        return "Clojure %s:%s" % (self._host, self._port)
 
     def is_alive(self):
-        return false
         return self._alive
 
     def read_bytes(self):
-        return None
-        """Read waiting input from vt"""
-        # msg = self._terminal.read()
-        msg = ""
-        return "\n" + msg
-        
+        nrepl_msg = self._bencode_socket.recv()
+        print "nrepl in:", nrepl_msg
+
+        o = [""]
+        if 'status' in nrepl_msg:
+            if 'eval-error' in nrepl_msg['status']:
+                o.append("Evaluation error")
+                o.append("Root exception: " + nrepl_msg['root-ex'])
+                o.append("Exception: " + nrepl_msg['ex'])
+
+            if 'done' in nrepl_msg['status']:
+                o.append("")        
+
+        if 'err' in nrepl_msg:
+            o.append(nrepl_msg['err'])
+
+        if 'value' in nrepl_msg:
+            o.append(nrepl_msg['value'])
+            self._ns = nrepl_msg['ns']
+
+        o = "\n".join(o)
+
+        return o
+
     def write_bytes(self, bytes):
-        pass
-        # self._nrepl.user_input(bytes)
+        self.eval(self._current_session, bytes)
 
     def kill(self):
         self._killed = True
         self._alive = False
 
+    def connect(self, host, port):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # try:
+        s.connect((host, port))
+        # except socket.error, e:
+            # XXX handle errors
+        self._socket = s
+        self._host = host
+        self._port = port
+        
+        # self.protocol = Protocol(s)
+        # self.protocol.start()
+        # self.initialize_session()
+        print "connected to %s:%s" % (host, port)
+        self._bencode_socket = bensock.BencodeStreamSocket(s)
+
+    def eval(self, session, s):
+        op = {'op': 'eval', 'code': s}
+        if session is not None:
+            op['session'] = session
+        
+        print "eval", op
+        self._bencode_socket.send(op)
