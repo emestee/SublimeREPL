@@ -37,6 +37,7 @@ class ClojureNreplRepl(Repl):
         port: nrepl server port to connect to
         cmd_postfix: some REPLS require you to end a command with a postfix to begin execution,
           think ';' or '.', you can force repl to add it automatically"""
+
         super(ClojureNreplRepl, self).__init__(encoding, external_id, "", suppress_echo)
         # self._terminal = NReplSublimeTerminal()
         # self._nrepl = NReplClient((host, int(port)), terminal=self._terminal)
@@ -49,9 +50,11 @@ class ClojureNreplRepl(Repl):
         return "Clojure nrepl %s:%s" % (self._host, self._port)
 
     def is_alive(self):
+        return false
         return self._alive
 
     def read_bytes(self):
+        return None
         """Read waiting input from vt"""
         # msg = self._terminal.read()
         msg = ""
