@@ -190,7 +190,7 @@ class ReplView(object):
 
         view.settings().set("history_arrows", settings.get("history_arrows", True))
 
-        # for hysterical rasins ;)
+        # for hysterical raisins ;)
         persistent_history_enabled = settings.get("persistent_history_enabled") or settings.get("presistent_history_enabled")
         if self.external_id and persistent_history_enabled:
             self._history = PersistentHistory(self.external_id)

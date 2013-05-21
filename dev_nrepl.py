@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-s
-# Copyright (c) 2011, Michael Stolovitzsky (emestee@catnarok.net)
+# Copyright (c) 2013, Michael Stolovitzsky (emestee@catnarok.net)
 # Based on work by Wojciech Bederski (wuub.net)
 # All rights reserved. 
 # See LICENSE.txt for details.
@@ -32,8 +32,7 @@ class ClojureNreplRepl(Repl):
         external_id: external, persistent name of this repl used to find it later
         host: nrepl server host to connect to
         port: nrepl server port to connect to
-        cmd_postfix: some REPLS require you to end a command with a postfix to begin execution,
-          think ';' or '.', you can force repl to add it automatically"""
+        """
 
         Repl.__init__(self, encoding, external_id, "", suppress_echo)
         self._alive = True
@@ -42,6 +41,8 @@ class ClojureNreplRepl(Repl):
         self._current_session = None
         self._socket = None
         self._bencode_socket = None
+        self._ns = "(unknown)"
+
         if host and port:
             self.connect(host, port)
 
@@ -52,32 +53,41 @@ class ClojureNreplRepl(Repl):
         return self._alive
 
     def read_bytes(self):
+        o = [""]
+
         nrepl_msg = self._bencode_socket.recv()
         print "nrepl in:", nrepl_msg
 
-        o = [""]
+        if 'value' in nrepl_msg:
+            self._ns = nrepl_msg['ns']
+
+        if 'status' in nrepl_msg and 'done' in nrepl_msg['status']:
+            o.append(self.prompt) 
+    
+        if 'out' in nrepl_msg:
+            o.append(nrepl_msg['out'])
+
         if 'status' in nrepl_msg:
             if 'eval-error' in nrepl_msg['status']:
                 o.append("Evaluation error")
                 o.append("Root exception: " + nrepl_msg['root-ex'])
                 o.append("Exception: " + nrepl_msg['ex'])
 
-            if 'done' in nrepl_msg['status']:
-                o.append("")        
-
         if 'err' in nrepl_msg:
             o.append(nrepl_msg['err'])
 
-        if 'value' in nrepl_msg:
+        if ('value' in nrepl_msg):
+            if 'id' in nrepl_msg and nrepl_msg['id'] == 'init':
+                return self.read_bytes()
+                
             o.append(nrepl_msg['value'])
-            self._ns = nrepl_msg['ns']
 
-        o = "\n".join(o)
-
-        return o
+        return "\n".join(o)
 
     def write_bytes(self, bytes):
-        self.eval(self._current_session, bytes)
+        if bytes == "":
+            return
+        self.op_eval(self._current_session, bytes)
 
     def kill(self):
         self._killed = True
@@ -93,16 +103,19 @@ class ClojureNreplRepl(Repl):
         self._host = host
         self._port = port
         
-        # self.protocol = Protocol(s)
-        # self.protocol.start()
-        # self.initialize_session()
-        print "connected to %s:%s" % (host, port)
         self._bencode_socket = bensock.BencodeStreamSocket(s)
+        self.session_init()
 
-    def eval(self, session, s):
+    def session_init(self):
+        self.op_eval(None, '*ns*', 'init')
+
+    def op_eval(self, session, s, id=None):
         op = {'op': 'eval', 'code': s}
         if session is not None:
             op['session'] = session
         
-        print "eval", op
+        if id is not None:
+            op['id'] = id
+
+        print "out:", op
         self._bencode_socket.send(op)
