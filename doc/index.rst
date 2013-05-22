@@ -122,29 +122,16 @@ Newest Clojure and Leiningen versions replace the old telnet REPL with a new eng
 called nrepl, which integrates natively with Leiningen projects. This deprecates the old
 SublimeREPL telnet implementation, which is now replaced with the new nrepl client.
 
-This is a work in progress!
+This is a work in progress! Things this implementation doesn't do currently:
 
-Work plan:
-
-* Purge the old implementation, leaving only the shell
-* Lay out the new structure
-* Implement! 
-
-The old implementation supported either the subprocess mode or the telnet mode. 
-
-* In subprocess mode, we launch a Leiningen REPL (with e.g. `lein repl`) and interact with its
-IO. This requires a Leiningen project.
-* In native mode, we assume a nrepl server is already running somewhere, and connect with it via
-an embedded client. 
-
-We implement native mode first. This requires a special derivation of Repl.
-
-Menu config:
-
-* Changing repl ID to repl_clojure_nrepl
-* Changng repl type to nrepl
-* What does soft_quit do 
-* Do we retain cwd?
+* Sessions. Nrepl supports sessions and the client could remember which session was used last, and reconnect to it if available.
+  This would allow to skip initialization and reloading of top-level forms and bindings. 
+* Menu input of host:port (currently hardcoded)
+* Lein configuration file interpretation to obtain host:port
+* No correct shutdown, every connection creates a new session in the repl server, and sockets may remain hanging (?)
+* No remotely requested input support (e.g can't feed *in* on the protocol level)
+* No in-REPL ,commands
+* No status banners
 
 ! When over, remove workspace file from .gitignore
 
@@ -167,7 +154,6 @@ SublimeREPL  configuration (via Preferences > Package Settings > SublimeREPL >
 Settings - User) so that we can find your lein binary::
 
     "default_extend_env": {"PATH": "{PATH}:/home/myusername/bin"}
-
 
 The source buffer "send block" command (Ctrl+, b) deserves a special mention.
 Performing this command while the cursor is within the body of a definition
