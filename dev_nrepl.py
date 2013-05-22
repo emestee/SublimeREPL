@@ -61,6 +61,7 @@ class ClojureNreplRepl(Repl):
         if 'value' in nrepl_msg:
             self._ns = nrepl_msg['ns']
 
+        # Prompt injection hack
         if 'status' in nrepl_msg and 'done' in nrepl_msg['status']:
             o.append(self.prompt) 
     
@@ -76,7 +77,10 @@ class ClojureNreplRepl(Repl):
         if 'err' in nrepl_msg:
             o.append(nrepl_msg['err'])
 
-        if ('value' in nrepl_msg):
+        if 'value' in nrepl_msg:
+            # Suppress initialization output
+            if 'id' in nrepl_msg and nrepl_msg['id'] == 'init':
+                return self.read_bytes()
             o.append(nrepl_msg['value'])
 
         return "\n".join(o)

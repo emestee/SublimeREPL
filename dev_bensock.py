@@ -4,7 +4,7 @@ import dev_bdecode as bdecode
 import socket
 import signal
 
-BUF_SIZE = 128
+BUF_SIZE = 4096
 
 class BencodeStreamSocket():
     def __init__(self, sock):
@@ -20,6 +20,11 @@ class BencodeStreamSocket():
         decoded = None
 
         while decoded is None:
+            if self.tail:
+                decoded, self.tail = bdecode.loads(self.tail)
+                if decoded: 
+                    return decoded
+
             bytes = self.socket.recv(BUF_SIZE)
 
             if not bytes:
@@ -33,18 +38,3 @@ class BencodeStreamSocket():
             decoded, self.tail = bdecode.loads(bytes)
 
         return decoded
-
-if __name__ == "__main__":
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('127.0.0.1', 4567))
-
-    ss = BencodeStreamSocket(s)
-    while True:
-        data = ss.recv()
-        if data is None:
-            break
-
-        print "DECODED:", data
-
-    #s.shutdown()
-    s.close()
