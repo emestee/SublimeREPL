@@ -61,8 +61,10 @@ class ClojureNreplRepl(Repl):
         if 'value' in nrepl_msg:
             self._ns = nrepl_msg['ns']
 
-        # Prompt injection hack
         if 'status' in nrepl_msg and 'done' in nrepl_msg['status']:
+            if 'id' in nrepl_msg and nrepl_msg['id'] in self._evals:
+                self._evals.remove(nrepl_msg['id'])
+            # Prompt injection hack
             o.append(self.prompt) 
     
         if 'out' in nrepl_msg:
@@ -88,7 +90,11 @@ class ClojureNreplRepl(Repl):
     def write_bytes(self, bytes):
         if bytes == "":
             return
-        self.op_eval(self._current_session, bytes)
+
+        self._eval_seq += 1
+        self._evals.append(self._eval_seq)
+        print "%d evals pending", len(self._evals)
+        self.op_eval(self._current_session, bytes, self._eval_seq)
 
     def kill(self):
         self._killed = True
@@ -103,12 +109,13 @@ class ClojureNreplRepl(Repl):
         self._socket = s
         self._host = host
         self._port = port
-        
         self._bencode_socket = bensock.BencodeStreamSocket(s)
         self.session_init()
 
     def session_init(self):
         self.op_eval(None, '*ns*', 'init')
+        self._evals = []
+        self._eval_seq = 0
 
     def op_eval(self, session, s, id=None):
         op = {'op': 'eval', 'code': s}
