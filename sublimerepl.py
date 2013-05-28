@@ -355,6 +355,9 @@ class ReplView(object):
             return data, True
 
     def update_view_loop(self):
+        """Perform a blocking read from the REPL, and pump the obtained data to the view
+        for rendering"""
+        
         (data, is_still_working) = self.new_output()
         if data:
             self.write(data)
@@ -420,6 +423,9 @@ class ReplManager(object):
         self.repl_views = {}
 
     def repl_view(self, view):
+        """Returns the rview associated with a Sublime view, if any
+
+        Causes the found rview to update"""
         repl_id = view.settings().get("repl_id")
         if repl_id not in self.repl_views:
             return None
@@ -428,7 +434,7 @@ class ReplManager(object):
         return rv
 
     def find_repl(self, external_id):
-        """Yields rvews matching external_id taken from source.[external_id] scope
+        """Yields rviews matching external_id taken from source.[external_id] scope
            Match is done on external_id value of repl and additional_scopes"""
         for rv in self.repl_views.values():
             rvid = rv.external_id

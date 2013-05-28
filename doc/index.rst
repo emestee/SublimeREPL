@@ -133,6 +133,9 @@ This is a work in progress! Things this implementation doesn't do currently:
 * No in-REPL ,commands
 * No status banners
 
+We can inject the prompt by extending the Repl class interface so that it receives instances of view to do
+its own modifications, or in our repl class, import the manager, use it to find the view, and inject the prompt directly
+
 ! When over, remove workspace file from .gitignore
 
 Clojure telnet REPL - deprecated
@@ -385,6 +388,19 @@ A REPL class is expected to provide a standard interface for SublimeREPL integra
 
    Write some bytes to REPL's outgoing stream. User input in the REPL view's
    command line will be delivered here.
+
+.. py:method:: is_alive()  
+
+   Return whether this REPL is alive or dead
+
+.. py:method:: name()  
+
+   Return the "file" name of this REPL, to be displayed in the tab
+
+
+.. py:method:: name()  
+
+   Kill this REPL. You should perform cleanup here.
 
 REPL initialization sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
