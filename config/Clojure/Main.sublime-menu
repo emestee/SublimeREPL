@@ -11,17 +11,9 @@
                 {"caption": "Clojure",
                  "id": "Clojure",
                  "children":[
-                    {"command": "repl_open", 
-                     "caption": "Connect to nrepl",
-                     "id": "repl_clojure_nrepl",
-                     "args": {
-                        "type": "clojure_nrepl",
-                        "encoding": "utf8",
-                        "syntax": "Packages/Clojure/Clojure.tmLanguage",
-                        "external_id": "clojure"}
-                    },
                     {"command": "clojure_auto_nrepl",
-                    "id": "repl_clojure_nrepl"
+                    "id": "repl_clojure_nrepl",
+                    "caption": "Connect to NRepl..."
                     }
                     ]}
             ]   
