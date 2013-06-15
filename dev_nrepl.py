@@ -50,24 +50,27 @@ class ClojureNreplRepl(Repl):
         return "Clojure %s:%s" % (self._host, self._port)
 
     def is_alive(self):
-        return self._alive
+        return self._bencode_socket.socket is not None
 
     def read_bytes(self):
-        o = [""]
+        o = []
 
         nrepl_msg = self._bencode_socket.recv()
+        init='id' in nrepl_msg and nrepl_msg['id'] == 'init'
 
         if 'new-session' in nrepl_msg:
             self._current_session = nrepl_msg['new-session']
 
-        if 'value' in nrepl_msg:
+        if 'ns' in nrepl_msg:
             self._ns = nrepl_msg['ns']
 
         if 'status' in nrepl_msg and 'done' in nrepl_msg['status']:
             if 'id' in nrepl_msg and nrepl_msg['id'] in self._evals:
                 self._evals.remove(nrepl_msg['id'])
             # Prompt injection hack
-            o.append(self.prompt) 
+            if not init:
+                o.append("")
+                o.append(self.prompt) 
     
         if 'out' in nrepl_msg:
             o.append(nrepl_msg['out'])
@@ -96,10 +99,11 @@ class ClojureNreplRepl(Repl):
 
         self._eval_seq += 1
         self._evals.append(self._eval_seq)
-        print "%d evals pending", len(self._evals)
+        print "%d evals pending" % len(self._evals)
         self.op_eval(self._current_session, bytes, self._eval_seq)
 
     def kill(self):
+        self.disconnect()
         self._killed = True
         self._alive = False
 
@@ -115,21 +119,29 @@ class ClojureNreplRepl(Repl):
         self._bencode_socket = bensock.BencodeStreamSocket(s)
         self.session_init()
 
+    def disconnect(self):
+        self._bencode_socket.disconnect()
+
     def session_init(self):
-        self.op_clone()
-        self.op_eval(None, '*ns*', 'init')
         self._evals = []
+        self.op_clone('init')
+        self.read_bytes()
+        self.op_eval(self._current_session, '1')
+        self.read_bytes()
         self._eval_seq = 0
 
-    def op_clone(self):
+    def op_clone(self, id=None):
         op = {'op': 'clone'}
+        if id:
+            op['id'] = id
+
         self._bencode_socket.send(op)
 
     def op_eval(self, session, s, id=None):
         op = {'op': 'eval', 'code': s}
         if session is not None:
             op['session'] = session
-        
+
         if id is not None:
             op['id'] = id
 
