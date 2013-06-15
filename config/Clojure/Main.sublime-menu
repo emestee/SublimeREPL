@@ -19,6 +19,9 @@
                         "encoding": "utf8",
                         "syntax": "Packages/Clojure/Clojure.tmLanguage",
                         "external_id": "clojure"}
+                    },
+                    {"command": "clojure_auto_nrepl",
+                    "id": "repl_clojure_nrepl"
                     }
                     ]}
             ]   

@@ -29,7 +29,7 @@ class ClojureNreplRepl(Repl):
     def prompt(self):
         return "%s > " % self._ns
 
-    def __init__(self, encoding="utf-8", external_id=None, host="localhost", port=4001, suppress_echo=False):
+    def __init__(self, encoding="utf-8", external_id=None, host="localhost", port=None, suppress_echo=False):
         """Create new ClojureNreplRepl with the following initial values:
         encoding: one of python accepted encoding used to encode commands and decode responses
         external_id: external, persistent name of this repl used to find it later
@@ -46,8 +46,7 @@ class ClojureNreplRepl(Repl):
         self._bencode_socket = None
         self._ns = "(unknown)"
         
-        if host and port:
-            self.connect(host, port)
+        self.connect(host, port)
 
     def name(self):
         return "Clojure %s:%s" % (self._host, self._port)

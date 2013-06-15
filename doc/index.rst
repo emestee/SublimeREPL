@@ -126,17 +126,12 @@ This is a work in progress! Things this implementation doesn't do currently:
 
 * Sessions. Nrepl supports sessions and the client could remember which session was used last, and reconnect to it if available.
   This would allow to skip initialization and reloading of top-level forms and bindings. 
-* Menu input of host:port (currently hardcoded)
-* Lein configuration file interpretation to obtain host:port
-* No correct shutdown, every connection creates a new session in the repl server, and sockets may remain hanging (?)
 * No remotely requested input support (e.g can't feed *in* on the protocol level)
 * No in-REPL ,commands
 * No status banners
 
-We can inject the prompt by extending the Repl class interface so that it receives instances of view to do
-its own modifications, or in our repl class, import the manager, use it to find the view, and inject the prompt directly
-
 ! When over, remove workspace file from .gitignore
+! If custom commands are kept, make sure to update keybindings for other platforms as well
 
 Clojure telnet REPL - deprecated
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -12,7 +12,7 @@ from contextlib import closing
 
 SETTINGS_FILE = "SublimeREPL.sublime-settings"
 
-class ClojureAutoTelnetRepl(sublime_plugin.WindowCommand):
+class ClojureAutoNrepl(sublime_plugin.WindowCommand):
     def is_running(self, port_str):
         """Check if port is open on localhost"""
         port = int(port_str)
@@ -59,17 +59,17 @@ class ClojureAutoTelnetRepl(sublime_plugin.WindowCommand):
             return
         if index == len(choices) - 1:
             self.window.show_input_panel("Enter port number", "",
-                                         self.open_telnet_repl,
+                                         self.open_clojure_nrepl,
                                          None, None)
             return
-        self.open_telnet_repl(choices[index][1])
+        self.open_clojure_nrepl(choices[index][1])
 
-    def open_telnet_repl(self, port_str):
+    def open_clojure_nrepl(self, port_str):
         try:
             port = int(port_str)
         except ValueError:
             return
-        self.window.run_command("repl_open", {"type":"telnet", "encoding":"utf8", "host":"localhost", "port":port,
+        self.window.run_command("repl_open", {"type":"clojure_nrepl", "encoding":"utf8", "host":"localhost", "port":port,
                                 "external_id":"clojure", "syntax":"Packages/Clojure/Clojure.tmLanguage"})
 
 

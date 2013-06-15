@@ -15,6 +15,11 @@ class BencodeStreamSocket():
     def send(self, val):
         self.socket.sendall(bencode.bencode(val))
 
+    def disconnect(self):
+        self.socket.close()
+        self.socket = None
+        print "(disconnected)"
+
     def recv(self):
         """Read a single full bencode entity. Block until one is attained."""
         decoded = None

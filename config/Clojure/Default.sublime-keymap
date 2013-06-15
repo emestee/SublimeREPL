@@ -1,5 +1,5 @@
 [
-	{ "keys": ["f12"], "command": "run_existing_window_command", "args": {"id": "repl_clojure_nrepl", "file": "config/Clojure/Main.sublime-menu"}},
+	{ "keys": ["f12"], "command": "clojure_auto_nrepl"},
     { "keys": ["enter"], "command": "repl_enter_clojure_nrepl", "args": {},
     "context":
         [
