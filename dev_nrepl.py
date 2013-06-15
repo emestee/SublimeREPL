@@ -56,7 +56,9 @@ class ClojureNreplRepl(Repl):
         o = [""]
 
         nrepl_msg = self._bencode_socket.recv()
-        print "nrepl in:", nrepl_msg
+
+        if 'new-session' in nrepl_msg:
+            self._current_session = nrepl_msg['new-session']
 
         if 'value' in nrepl_msg:
             self._ns = nrepl_msg['ns']
@@ -82,6 +84,7 @@ class ClojureNreplRepl(Repl):
         if 'value' in nrepl_msg:
             # Suppress initialization output
             if 'id' in nrepl_msg and nrepl_msg['id'] == 'init':
+                self._current_session = nrepl_msg['session']
                 return self.read_bytes()
             o.append(nrepl_msg['value'])
 
@@ -113,9 +116,14 @@ class ClojureNreplRepl(Repl):
         self.session_init()
 
     def session_init(self):
+        self.op_clone()
         self.op_eval(None, '*ns*', 'init')
         self._evals = []
         self._eval_seq = 0
+
+    def op_clone(self):
+        op = {'op': 'clone'}
+        self._bencode_socket.send(op)
 
     def op_eval(self, session, s, id=None):
         op = {'op': 'eval', 'code': s}
@@ -125,5 +133,4 @@ class ClojureNreplRepl(Repl):
         if id is not None:
             op['id'] = id
 
-        print "out:", op
         self._bencode_socket.send(op)
