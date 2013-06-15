@@ -5,19 +5,22 @@
 # See LICENSE.txt for details.
 
 from repls import Repl
+import sublime_plugin
+import sublimerepl
+
 from time import sleep
 
 import dev_bensock as bensock
-
 import socket
 
-#class ReplEnterClojureNreplCommand(sublime_plugin.TextCommand):
-#    def run(self, edit):
-#        rv = sublimerepl.manager.repl_view(self.view)
-#        print self.view, rv
-#        if rv:
-#            rv.enter()
-#            rv.repl._terminal.internal.write(">>> ")
+class ReplEnterClojureNreplCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+       rv = sublimerepl.manager.repl_view(self.view)
+       print self.view, rv
+       if rv:
+            rv.replace_current_input(edit, rv.user_input + "\n")
+            self.view.show(rv.input_region)
+            rv.enter()
     
 class ClojureNreplRepl(Repl):
     TYPE = "clojure_nrepl"
@@ -42,7 +45,7 @@ class ClojureNreplRepl(Repl):
         self._socket = None
         self._bencode_socket = None
         self._ns = "(unknown)"
-
+        
         if host and port:
             self.connect(host, port)
 

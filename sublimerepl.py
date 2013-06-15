@@ -284,6 +284,7 @@ class ReplView(object):
         self._view.show(self.input_region)
 
     def enter(self):
+        """Send user input to the REPL, appending command postfix"""
         v = self._view
         if v.sel()[0].begin() != v.size():
             v.sel().clear()
@@ -313,16 +314,18 @@ class ReplView(object):
             self._view = view
 
     def adjust_end(self):
+        """Update end-of-output marker"""
         if self.repl.suppress_echo:
             v = self._view
             vsize = v.size()
+            # Erase everything between the previous marker and the end of the buffer
             self._output_end = min(vsize, self._output_end)
             v.run_command("repl_erase_text", {"start": self._output_end, "end": vsize})
         else:
             self._output_end = self._view.size()
 
     def write(self, unistr):
-        """Writes output from Repl into this view."""
+        """Append the output from Repl to this view."""
         # remove color codes
         if self._filter_color_codes:
             unistr = re.sub(r'\033\[\d*(;\d*)?\w', '', unistr)

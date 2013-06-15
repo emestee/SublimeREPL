@@ -1,3 +1,10 @@
 [
-	{ "keys": ["ctrl+f12", "c", "s"], "command": "run_existing_window_command", "args": {"id": "repl_clojure_nrepl", "file": "config/Clojure/Main.sublime-menu"}}
+	{ "keys": ["f12"], "command": "run_existing_window_command", "args": {"id": "repl_clojure_nrepl", "file": "config/Clojure/Main.sublime-menu"}},
+    { "keys": ["enter"], "command": "repl_enter_clojure_nrepl", "args": {},
+    "context":
+        [
+            { "key": "setting.repl", "operator": "equal", "operand": true },
+            { "key": "auto_complete_visible", "operator": "equal", "operand": false }
+        ]
+    }
 ]
