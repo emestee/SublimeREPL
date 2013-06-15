@@ -114,21 +114,37 @@ different REPL modes which are based  on different underlying classes.
 Clojure NREPL
 ^^^^^^^^^^^^^
 
-If you are reading this, then you are probably looking at emestee's development branch.
-Unless you want to hack on the bleeding edge version of this not-yet-software, go ahead. Otherwise
-you probably want the stable version of SublimeREPL (in which there's no working Clojure integration)
+.. Warning::
+  If you are reading this, then you are probably looking at emestee's development branch.
+  Unless you want to hack on the bleeding edge version of this not-yet-software, go ahead. Otherwise
+  you probably want the stable version of SublimeREPL (in which there's no working Clojure integration)
+
+.. Warning::
+  In this development branch, some development-time things are applied that will be removed in the release version:
+* F12 spawns a new Clojure REPL
+* Files that should be in `repls/` are dev_xxx.py in SublimeREPL's main directory so that Sublime reloads them upon changes
+* Some package-related stuff has been adjusted
+* There is debug code and ugly hacks all over the place
 
 Newest Clojure and Leiningen versions replace the old telnet REPL with a new engine
 called nrepl, which integrates natively with Leiningen projects. This deprecates the old
 SublimeREPL telnet implementation, which is now replaced with the new nrepl client.
 
-This is a work in progress! Things this implementation doesn't do currently:
+This is a work in progress! Things that work:
 
-* Sessions. Nrepl supports sessions and the client could remember which session was used last, and reconnect to it if available.
-  This would allow to skip initialization and reloading of top-level forms and bindings. 
-* No remotely requested input support (e.g can't feed *in* on the protocol level)
-* No in-REPL ,commands
+* Connect to a running nrepl instance, send commands to eval, receive results. Press F12 to try!
+
+Things that *DON'T* work:
+
+* Sessions. Nrepl supports sessions and the client could remember which session was used last, and reconnect to
+  it if  available. This would allow to skip initialization and reloading of top-level forms and bindings. 
+* No remotely requested input support. If your code tried to read from *in*, it will hang indefinitely.
+* No built-in REPL commands: you can not disconnect, connect elsewhere, list sessions etc 
 * No status banners
+* Reading of Leiningen 2 project files
+* True asyncronous evals. The way it SHOULD work is: you submit some code for evaluation; the repl blocks, waiting for the
+  response; you can now press C-c to abort the evaluation or C-z to background it, which returns you to the repl prompt. The way
+  it works now: you send some code for evaluation, and, albeit no prompt is shown, you can type and evaluate more code.
 
 ! When over, remove workspace file from .gitignore
 ! If custom commands are kept, make sure to update keybindings for other platforms as well
