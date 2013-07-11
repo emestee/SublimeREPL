@@ -18,7 +18,6 @@ class BencodeStreamSocket():
     def disconnect(self):
         self.socket.close()
         self.socket = None
-        print "(disconnected)"
 
     def recv(self):
         """Read a single full bencode entity. Block until one is attained."""
@@ -30,7 +29,10 @@ class BencodeStreamSocket():
                 if decoded: 
                     return decoded
 
-            bytes = self.socket.recv(BUF_SIZE)
+            try:
+                bytes = self.socket.recv(BUF_SIZE)
+            except socket.error:
+                return None
 
             if not bytes:
                 # Socket was closed

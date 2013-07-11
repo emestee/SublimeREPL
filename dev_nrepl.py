@@ -58,6 +58,10 @@ class ClojureNreplRepl(Repl):
         o = []
 
         nrepl_msg = self._bencode_socket.recv()
+        if nrepl_msg is None:
+            self.kill()
+            return None
+
         init='id' in nrepl_msg and nrepl_msg['id'] == 'init'
 
         if 'new-session' in nrepl_msg:
@@ -123,6 +127,7 @@ class ClojureNreplRepl(Repl):
 
     def disconnect(self):
         self._bencode_socket.disconnect()
+        self._bencode_socket = None
 
     def session_init(self):
         self._evals = []
