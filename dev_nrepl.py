@@ -83,7 +83,7 @@ class ClojureNreplRepl(Repl):
                 o.append(self.prompt) 
     
         if 'out' in nrepl_msg:
-            o.append(nrepl_msg['out'])
+            o.append(nrepl_msg['out'] + "\n")
 
         if 'status' in nrepl_msg:
             if 'eval-error' in nrepl_msg['status']:
@@ -99,7 +99,7 @@ class ClojureNreplRepl(Repl):
             if 'id' in nrepl_msg and nrepl_msg['id'] == 'init':
                 self._current_session = nrepl_msg['session']
                 return self.read_bytes()
-            o.append(nrepl_msg['value'])
+            o.append(nrepl_msg['value'] + "\n")
 
         return "\n".join(o)
 
