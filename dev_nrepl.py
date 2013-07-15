@@ -45,7 +45,9 @@ class ClojureNreplRepl(Repl):
         self._socket = None
         self._bencode_socket = None
         self._ns = "(unknown)"
-        
+        self._debug_recv = True
+        self._debug_eval = True
+
         self.connect(host, port)
 
     def name(self):
@@ -62,6 +64,8 @@ class ClojureNreplRepl(Repl):
             self.kill()
             return None
 
+        if self._debug_recv:
+            print nrepl_msg
         init='id' in nrepl_msg and nrepl_msg['id'] == 'init'
 
         if 'new-session' in nrepl_msg:
@@ -100,6 +104,7 @@ class ClojureNreplRepl(Repl):
         return "\n".join(o)
 
     def write_bytes(self, bytes):
+        print "write_bytes() at instance", self, "sock", self._bencode_socket
         if bytes == "":
             return
 
@@ -152,4 +157,6 @@ class ClojureNreplRepl(Repl):
         if id is not None:
             op['id'] = id
 
+        if self._debug_eval:
+            print "eval", s, self
         self._bencode_socket.send(op)

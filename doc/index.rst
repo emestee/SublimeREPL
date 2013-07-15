@@ -130,13 +130,17 @@ Newest Clojure and Leiningen versions replace the old telnet REPL with a new eng
 called nrepl, which integrates natively with Leiningen projects. This deprecates the old
 SublimeREPL telnet implementation, which is now replaced with the new nrepl client.
 
-When you send text from a buffer to evaluation, the actual code you send may be modified a little to evaluate in the correct namespace.
-The algorithm works as follows:
+When you send text from a buffer to evaluation, the actual code you send may
+be modified a little to evaluate in the correct namespace. The algorithm works
+as follows:
 
-* If the source buffer is not a Clojure syntax buffer, the code is not modified
-* If there's no namespace declaration at the top of the buffer from which you send the text, the code is not modified
-* If there is a namespace declaration, the code is wrapped in a `*ns*` binding. If the target namespace has already been created,
-  then `*ns*` is bound to it. If there is no such namespace, then `*ns*` is bound to the "user" namespace.
+* If there's no namespace declaration at the top of the buffer from which you send the text, the code is not modified, 
+  and so evaluation occurs in the current namespace, and the current namespace of the REPL may be switched.
+* If the code begins with a `(ns ...)` or `(in-ns ...)` form the code is not modified, 
+  and so evaluation occurs in the current namespace. The current namespace of the REPL will be switched.
+* If there is a namespace declaration, the code is wrapped before evaluation. The wrapper checks if the namespace
+  of the declaration exists (via `(find-ns ...)`), and if not, evaluates the declaration. The current namespace of the
+  REPL is switched to the declared namespace via `(in-ns ...)`. The code is then evaluated. This may break in exotic cases.
 
 This is a work in progress! Things that work:
 

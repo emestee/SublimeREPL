@@ -74,15 +74,25 @@ def clojure_sender(repl, text, view):
     # that syntax errors are caught and thrown back immediately
     # This is suppressed as an experimental fix to issue #10 and wuub's
     # issue
+    #text = text.replace('"', r'\"')
+    #text = text.replace("\\", "\\\\")
+    #text = '(load-string "' + text + '")'
 
-    # text = '(load-string "' + text.replace('"', r'\"') + '")'
+    # Forms that rebind *ns* are sent to evaluation as is. This switches the current
+    # REPL namespace.
 
-    # find the first non-commented statement from the start of the file
+    if text.startswith('(ns ') or text.startswith('(in-ns '):
+        return default_sender(repl, text + repl.cmd_postfix, view)
+
     namespacedecl = view.find(r"^[^;]*?\(", 0)
+
+    
+    # find the first non-commented statement from the start of the file   
 
     # if it's a namespace declaration, go search for the namespace name
     if namespacedecl and view.scope_name(namespacedecl.end()-1).startswith("source.clojure meta.function.namespace.clojure"):
         namespacedecl = view.extract_scope(namespacedecl.end()-1)
+        ns_statement = view.substr(namespacedecl)
 
         # we're looking for the first symbol within the declaration that
         # looks like a namespace and isn't metadata, a comment, etc.
@@ -99,21 +109,16 @@ def clojure_sender(repl, text, view):
             elif view.scope_name(namespace.begin() + 1).startswith("source.clojure meta.function.namespace.clojure entity.name.namespace.clojure"):
                 # looks alright, we've got our namespace!
                 # switch to namespace before executing command
+                # Wrapper to execute the namespace declaration statement if the namespace doesn't exist
 
-                # we could do this explicitly by calling (ns), (in-ns) etc:
-                # text = "(ns " + view.substr(namespace)[1:] + ") " + text
-                # but this would not only result in an extra return value
-                # printed to the user, the repl would also remain in that
-                # namespace after execution, so instead we do the same thing
-                # that swank-clojure does:
-                text = "(binding [*ns* (or (find-ns '" + view.substr(namespace)[1:] + ") (find-ns 'user))] " + text + ')'
-                # i.e. we temporarily switch to the namespace if it has already
-                # been created, otherwise we execute it in 'user. the most
-                # elegant option for this would probably be:
-                # text = "(binding [*ns* (create-ns '" + view.substr(namespace)[1:] + ")] " + text + ')'
-                # but this can lead to problems because of newly created
-                # namespaces not automatically referring to clojure.core
-                # (see https://groups.google.com/forum/?fromgroups=#!topic/clojure/Th-Bqq68hfo)
+                namespace = view.substr(namespace)[1:]
+                text = """;;; SublimeREPL automatic namespace initialization
+                (when-not (find-ns '%s) %s) 
+
+                (in-ns '%s)
+
+                ;;; The code that was sent for evaluation
+                %s""" % (namespace, ns_statement, namespace, text)
                 break
             else:
                 # false alarm (metadata or a comment), keep looking

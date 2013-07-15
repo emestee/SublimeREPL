@@ -11,9 +11,13 @@ class BencodeStreamSocket():
         self.socket = sock
         self.tail = None
         self.daemon = True
+        self._debug_send = False
 
     def send(self, val):
-        self.socket.sendall(bencode.bencode(val))
+        val = bencode.bencode(val)
+        if self._debug_send:
+            print val
+        self.socket.sendall(val)
 
     def disconnect(self):
         self.socket.close()
